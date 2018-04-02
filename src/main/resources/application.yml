@@ -1,0 +1,86 @@
+# app
+server:
+    port: 8070
+    
+# spring
+spring:
+  devtools:
+    restart:
+      enabled: false
+  resources:
+    static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/
+  mvc:
+    # 默认值为 /**
+    static-path-pattern: /static/**
+  datasource:
+    url: jdbc:mysql://localhost:3306/db_erp?characterEncoding=utf8
+    username: root
+    password: root
+    driver-class-name: com.mysql.jdbc.Driver
+    #type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      max-active: 20
+      initial-size: 1
+      min-idle: 3
+      max-wait: 60000
+      time-between-eviction-runs-millis: 300000
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      pool-prepared-statements: false
+  
+  freemarker:
+        cache: false
+        request-context-attribute: request
+        #模板加载的位置
+        template-loader-path: classpath:/templates
+        #前缀
+        suffix: .html
+  # REDIS (RedisProperties)
+  redis:
+    database: 0
+    host: 127.0.0.1
+    port: 6379
+    password:
+    pool:
+      # 连接池最大连接数（使用负值表示没有限制）
+      max-active: 8
+      # 连接池最大阻塞等待时间（使用负值表示没有限制）
+      max-wait: -1
+      # 连接池中的最大空闲连接
+      max-idle: 8
+      # 连接池中的最小空闲连接
+      min-idle: 0
+    timeout: 0
+# mybatis
+mybatis-plus:
+  mapper-locations: classpath:mapper/*Mapper.xml
+  typeAliasesPackage: com.wangsocial.app.entity
+  global-config:
+    #主键类型  0:"数据库ID自增", 1:"用户输入ID",2:"全局唯一ID (数字类型唯一ID)", 3:"全局唯一ID UUID";
+    id-type: 2
+    #字段策略 0:"忽略判断",1:"非 NULL 判断"),2:"非空判断"
+    field-strategy: 2
+    #驼峰下划线转换
+    db-column-underline: false
+    #刷新mapper 调试神器
+    refresh-mapper: true
+    #数据库大写下划线转换
+    #capital-mode: true
+    #序列接口实现类配置
+    #key-generator: com.wangsocial.app.xxx
+    #逻辑删除配置
+    #logic-delete-value: 0
+    #logic-not-delete-value: 1
+    #自定义填充策略接口实现
+    #meta-object-handler: com.wangsocial.app.xxx
+    #自定义SQL注入器
+    #sql-injector: com.wangsocial.app.xxx
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+#logging DEBUG < INFO < WARN < ERROR < FATAL
+logging:
+  level:
+    root: INFO
+  file: ./logs/app-logging.log

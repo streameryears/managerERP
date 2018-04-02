@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="../static/Css/bootstrap.css" />
+    <link rel="stylesheet" type="text/css" href="../static/Css/bootstrap-responsive.css" />
+    <link rel="stylesheet" type="text/css" href="../static/Css/style.css" />
+    <link rel="stylesheet" type="text/css" href="../static/layui/css/layui.css"/>
+    <script type="text/javascript" src="../static/Js/jquery.js"></script>
+    <script type="text/javascript" src="../static/Js/jquery.sorted.js"></script>
+    <script type="text/javascript" src="../static/Js/bootstrap.js"></script>
+    <script type="text/javascript" src="../static/Js/ckform.js"></script>
+    <script type="text/javascript" src="../static/Js/common.js"></script>
+    <!-- <script type="text/javascript" src="../static/layui/layui.js"></script> -->
+    <script type="text/javascript" src="../static/layer/layer.js"></script>
+
+    <style type="text/css">
+        body {
+            padding-bottom: 40px;
+        }
+        .sidebar-nav {
+            padding: 9px 0;
+        }
+
+        @media (max-width: 980px) {
+            /* Enable use of floated navbar text */
+            .navbar-text.pull-right {
+                float: none;
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+        }
+        th,td{
+			text-align:center;
+        }
+        .ord{
+        	margin: 0px 5px;
+    		background-color: orangered;
+    		border: none;
+    		color: white;
+        }
+        .ord_div1{
+            box-shadow: 0px 5px 5px rgba(0,0,0,0.1);
+    		line-height: 50px;
+    	}
+    		
+    	#ordSearchInput{
+    	    line-height: 30px;
+    		width: 255px;
+    		margin: 0px 15px;
+    		text-indent: 15px;
+    	}
+
+
+    </style>
+</head>
+<body>
+	<div class="ord_div1">
+	    <input  type="text" id="ordSearchInput" placeholder="输入订单名称进行查询" name="rolename" id="rolename"class="abc input-default" placeholder="" value="">&nbsp;&nbsp;  
+    	<button type="button" id="ordSearchParams" class="btn btn-primary">查询</button>&nbsp;&nbsp; 
+    	<button type="button" class="btn btn-success" id="addOrder">新增订单</button>
+	</div>   
+	
+	<table class="table table-bordered table-hover definewidth m10" >
+		<colgroup>
+	    	<col width="20%">
+	    	<col width="20%">
+	    	<col width="20%">
+	    	<col width="18%">
+	    	<col width="20%">
+	  	</colgroup>
+    	<thead>
+    		<tr>
+		        <th>订单编号</th>
+		        <th>订单名称</th>
+		       	<th>订单状态</th>
+		        <th>创建时间</th>
+		        <th>操作</th>
+	    	</tr>
+	    </thead>
+	    <tbody id="ordTbody"></tbody>
+	</table>
+<!-- <div class="inline pull-right page">
+         </div> -->
+</body>
+</html>
+<script type="text/javascript">
+	
+	$(document).ready(function(){
+		var searchContent = $("#ordSearchInput").val();
+		getOrderList(searchContent);
+	});
+	
+	function getOrderList(searchContent){
+		$.ajax({
+			type:"post",
+			dataType:"json",
+			url:"/order/getOrderList",
+			data:{"content":searchContent},
+			success:function(result){
+				if(result.ret == 1){
+					var ol = result.list;
+					$("#ordTbody").empty();
+					for(var i = 0 ;i < ol.length; i++){
+	                    var order = ol[i];
+	                    var str = "<tr class='ord_"+order.id+"'>";
+	                    str += "<td>"+order.id+"</td>";
+	                    str += "<td>"+order.name+"</td>";
+	                    str += "<td>"+order.orderProcess+"</td>";
+	                    var time = new Date(parseInt(order.createDate)).toLocaleString().replace(/:\d{1,2}$/,' ');
+	                    str += "<td class='cus_time'>"+time+"</td>";
+	                    str += "<td>";
+	                    str += "<button value='"+order.id+"' class='btn btn-primary ord ordDel'>删除</button>";
+	                    //str += "<button value='"+order.id+"' class='btn btn-primary ord ordEdit' style='background:#2196f3'>修改</button>";
+	                    //str += "<button value='"+order.id+"' class='btn btn-primary ord downOrder' style='background:#3f51b5'>下单</button>";
+	                    //<button type="button" id="cusSearchParams" class="btn btn-primary">查询</button>
+	                    str += "</td>";
+	                    str += "</tr>";
+	                    $("#ordTbody").append(str);
+		    		}
+				}else{
+					ErrTips(result.msg);
+				}
+			},
+			error:function(result){
+				ErrTips("服务器错误");
+			}
+		})
+	};
+	
+	$("#ordSearchParams").on('click',function(){
+		var searchContent = $("#ordSearchInput").val();
+		if($.trim(searchContent) == ""){
+	   		ErrTips("搜索内容不能为空");
+	        return;
+	    }
+		getOrderList(searchContent);
+		
+	})
+	
+	$(document).on('click','#addOrder',function () {
+		layer.prompt({title: '创建订单', formType: 3}, function(orderName, index){
+			if($.trim(orderName) == ""){
+				ErrTips("订单名称不能为空");
+		        return;
+			}
+			$.ajax({
+		      	type:"post",
+		      	dataType:"json",
+		      	url:"/order/insertOrder",
+		      	data:{"name":orderName},	
+		      	success:function(result){
+		            if(result.ret == 1){
+		            	TureTips(result.msg);
+		            	
+		            	getOrderList();
+		            }else{
+		            	ErrTips(result.msg);
+		            }
+		          },
+		          error:function(result){
+		        	  ErrTips("服务器错误");
+		          }
+		      })
+		      layer.close(index);
+		});
+	});
+	
+	$(document).on('click','.ordDel',function () {
+		var orderId = $(this).attr('value');
+		layer.confirm('确认删除吗？', {
+			icon:3,
+			btn: ['确定','取消'] //按钮
+			}, function(){
+				deleteOrder(orderId);
+			});
+	});
+	
+	function deleteOrder(orderId){
+		$.ajax({
+	      	type:"post",
+	      	dataType:"json",
+	      	url:"/order/deleteOrder",
+	      	data:{"id":orderId},	
+	      	success:function(result){
+	            if(result.ret == 1){
+	            	TureTips(result.msg);
+	            	$(".ord_"+orderId).remove();
+	            }else{
+	            	ErrTips(result.msg);
+	            }
+	          },
+	          error:function(result){
+	        	  ErrTips("服务器错误");
+	          }
+	      })
+	};
+
+
+	function ErrTips(msg) {
+		layer.msg(msg,{icon:7,time:1000});
+    }
+	
+	function TureTips(msg) {
+		layer.msg(msg,{icon:1,time:1500});
+	}
+
+</script>
